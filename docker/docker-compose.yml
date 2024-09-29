@@ -1,0 +1,51 @@
+version: '3'
+
+services:
+  mysql_source:
+    image: mysql:8.0
+    platform: linux/amd64
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: mydb
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: mypassword
+    volumes:
+      - db_data_source:/var/lib/mysql
+    command:
+      --default-authentication-plugin=mysql_native_password
+      --server-id=1
+      --log-bin=mysql-bin
+      --binlog-format=row
+    ports:
+      - "3306:3306"
+    networks:
+      - mysql-network
+  mysql_replica:
+    image: mysql:8.0
+    platform: linux/amd64
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: mydb
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: mypassword
+    volumes:
+      - db_data_replica:/var/lib/mysql
+    command:
+      --default-authentication-plugin=mysql_native_password
+      --server-id=2
+      --log-bin=mysql-bin
+      --binlog-format=row
+    ports:
+      - "3307:3306"
+    networks:
+      - mysql-network
+    depends_on:
+      - mysql_source
+
+volumes:
+  db_data_source:
+  db_data_replica:
+
+networks:
+  mysql-network:
+    driver: bridge
